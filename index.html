@@ -11,7 +11,8 @@
   <form id="commentForm">
     <input type="text" id="name" placeholder="Nume (opțional)">
     <textarea id="message" placeholder="Mesajul tău" required></textarea>
-    <div class="cf-turnstile" data-sitekey="0x4AAAAAAA9rgeB9x71eeXN6"></div>
+    <!-- Adaugă widget-ul Turnstile -->
+    <div class="cf-turnstile" data-sitekey="YOUR_SITE_KEY_HERE"></div>
     <button type="submit">Trimite</button>
   </form>
 
@@ -36,13 +37,19 @@
       }
     }
 
+    // Funcție pentru trimiterea comentariilor
     document.getElementById("commentForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const formData = {
         name: document.getElementById("name").value || "Anonim",
         message: document.getElementById("message").value,
-        token: document.querySelector('.cf-turnstile-response').value
+        token: document.querySelector('.cf-turnstile-response') ? document.querySelector('.cf-turnstile-response').value : null // Verifică dacă elementul există
       };
+
+      if (!formData.token) {
+        console.error("Token-ul Turnstile nu a fost găsit. Asigură-te că CAPTCHA a fost completat.");
+        return;
+      }
 
       try {
         await fetch(WORKER_URL, {
