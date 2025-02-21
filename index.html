@@ -4,15 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Comentarii</title>
-  <meta http-equiv="Content-Security-Policy" content="script-src *; default-src *;">
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://comments-worker.opensourcenl.workers.dev; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://comments-worker.opensourcenl.workers.dev;">
 </head>
 <body>
   <h1>Lasă un comentariu</h1>
   <form id="commentForm">
     <input type="text" id="name" placeholder="Nume (opțional)">
     <textarea id="message" placeholder="Mesajul tău" required></textarea>
-    <div class="cf-turnstile" data-sitekey="0x4AAAAAAA9rgeB9x71eeXN6" data-auto-submit="true"></div>
     <button type="submit">Trimite</button>
   </form>
 
@@ -42,12 +40,10 @@
 
     document.getElementById("commentForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const token = document.querySelector('.cf-turnstile-response') ? document.querySelector('.cf-turnstile-response').value : null;
 
       const formData = {
         name: document.getElementById("name").value || "Anonim",
-        message: document.getElementById("message").value,
-        token: token
+        message: document.getElementById("message").value
       };
 
       try {
