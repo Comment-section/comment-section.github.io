@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Comentarii</title>
-  <meta http-equiv="Content-Security-Policy" content="default-src *; script-src *; style-src *;">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://challenges.cloudflare.com; script-src 'self' 'nonce-<your-nonce-value>' 'unsafe-eval'; style-src 'self';">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
@@ -48,11 +48,17 @@
       };
 
       try {
-        await fetch(WORKER_URL, {
+        const response = await fetch(WORKER_URL, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(formData)
         });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(errorText);
+        }
+
         document.getElementById("message").value = "";
         loadComments();
       } catch (error) {
