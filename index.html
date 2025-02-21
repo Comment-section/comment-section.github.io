@@ -39,10 +39,13 @@
 
     document.getElementById("commentForm").addEventListener("submit", async (e) => {
       e.preventDefault();
+      const tokenElement = document.querySelector('.cf-turnstile-response');
+      const token = tokenElement ? tokenElement.value : null;
+
       const formData = {
         name: document.getElementById("name").value || "Anonim",
         message: document.getElementById("message").value,
-        token: document.querySelector('.cf-turnstile-response').value
+        token: token
       };
 
       try {
