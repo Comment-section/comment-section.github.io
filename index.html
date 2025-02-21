@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Comentarii</title>
-  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com;">
+  <meta http-equiv="Content-Security-Policy" content="default-src *; script-src *; style-src *;">
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
@@ -39,8 +39,7 @@
 
     document.getElementById("commentForm").addEventListener("submit", async (e) => {
       e.preventDefault();
-      const tokenElement = document.querySelector('.cf-turnstile-response');
-      const token = tokenElement ? tokenElement.value : null;
+      const token = document.querySelector('.cf-turnstile-response') ? document.querySelector('.cf-turnstile-response').value : null;
 
       const formData = {
         name: document.getElementById("name").value || "Anonim",
