@@ -1,21 +1,138 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ro">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Comentarii</title>
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self' https://comments-worker.opensourcenl.workers.dev; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://comments-worker.opensourcenl.workers.dev;">
+  <style>
+    /* Stiluri generale */
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+      background-color: #f4f4f4;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    /* Formularul de comentarii */
+    #commentForm {
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+    }
+
+    #commentForm input,
+    #commentForm textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    #commentForm button {
+      padding: 10px 15px;
+      background-color: #28a745;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #commentForm button:hover {
+      background-color: #218838;
+    }
+
+    /* Lista de comentarii */
+    #comments {
+      margin-top: 20px;
+    }
+
+    .comment {
+      background-color: #fff;
+      padding: 15px;
+      margin-bottom: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    .comment strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .comment small {
+      display: block;
+      margin-top: 5px;
+      color: #888;
+    }
+
+    .replyButton {
+      background: none;
+      border: none;
+      color: #007bff;
+      cursor: pointer;
+      text-decoration: underline;
+    }
+
+    .replyButton:hover {
+      color: #0056b3;
+    }
+
+    /* Formularul de răspuns */
+    #replyForm {
+      display: none;
+      background-color: #f9f9f9;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 5px;
+      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+    }
+
+    #replyForm input,
+    #replyForm textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 5px 0;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+
+    #replyForm button {
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #replyForm button:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
   <h1>Lasă un comentariu</h1>
   <form id="commentForm">
     <input type="text" id="name" placeholder="Nume (opțional)">
     <textarea id="message" placeholder="Mesajul tău" required></textarea>
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAAA9rgeB9x71eeXN6" data-auto-submit="true"></div>
     <button type="submit">Trimite</button>
   </form>
 
   <h2>Comentarii</h2>
   <div id="comments"></div>
+
+  <div id="replyForm">
+    <input type="text" id="replyName" placeholder="Nume (opțional)">
+    <textarea id="replyMessage" placeholder="Mesajul tău" required></textarea>
+    <button type="submit">Trimite răspunsul</button>
+  </div>
 
   <script>
     const WORKER_URL = "https://comments-worker.opensourcenl.workers.dev/";
@@ -27,45 +144,60 @@
           throw new Error("Failed to load comments");
         }
         const comments = await response.json();
-        document.getElementById("comments").innerHTML = comments.map(c => `
-          <div class="comment">
+        const commentsContainer = document.getElementById("comments");
+        commentsContainer.innerHTML = comments.map(c => `
+          <div class="comment" style="margin-left: ${c.parent_id ? '20px' : '0'};">
             <strong>${c.name}</strong>: ${c.message}
             <small>${new Date(c.timestamp).toLocaleString()}</small>
+            <button class="replyButton" data-parent-id="${c.id}">Răspunde</button>
+            ${c.replies ? `
+              <div class="replies">
+                ${c.replies.map(reply => `
+                  <div class="comment" style="margin-left: 20px;">
+                    <strong>${reply.name}</strong>: ${reply.message}
+                    <small>${new Date(reply.timestamp).toLocaleString()}</small>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
           </div>
-        `).join("");
+        `).join('');
+        document.querySelectorAll('.replyButton').forEach(button => {
+          button.addEventListener('click', (e) => {
+            const parentId = e.target.getAttribute('data-parent-id');
+            document.getElementById('replyForm').style.display = 'block';
+            document.getElementById('replyMessage').focus();
+            document.getElementById('replyForm').onsubmit = async (e) => {
+              e.preventDefault();
+              const formData = {
+                name: document.getElementById("replyName").value || "Anonim",
+                message: document.getElementById("replyMessage").value,
+                parent_id: parentId
+              };
+              try {
+                const response = await fetch(WORKER_URL, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(formData)
+                });
+                if (!response.ok) {
+                  const errorText = await response.text();
+                  throw new Error(errorText);
+                }
+                document.getElementById("replyMessage").value = "";
+                loadComments();
+                document.getElementById('replyForm').style.display = 'none';
+              } catch (error) {
+                console.error("Eroare la trimiterea răspunsului:", error);
+              }
+            };
+          });
+        });
       } catch (error) {
         console.error("Eroare la încărcarea comentariilor:", error);
       }
     }
 
-    document.getElementById("commentForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const formData = {
-        name: document.getElementById("name").value || "Anonim",
-        message: document.getElementById("message").value
-      };
-
-      try {
-        const response = await fetch(WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData)
-        });
-
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText);
-        }
-
-        document.getElementById("message").value = "";
-        loadComments();
-      } catch (error) {
-        console.error("Eroare la trimiterea comentariului:", error);
-      }
-    });
-
-    loadComments();
-  </script>
-</body>
-</html>
+    document.getElementById("commentForm").
+::contentReference[oaicite:0]{index=0}
+ 
