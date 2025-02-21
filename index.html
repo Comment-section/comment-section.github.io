@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Comentarii</title>
+</head>
+<body>
+  <h1>Lasă un comentariu</h1>
+  <form id="commentForm">
+    <input type="text" id="name" placeholder="Nume (opțional)">
+    <textarea id="message" placeholder="Mesajul tău" required></textarea>
+    <button type="submit">Trimite</button>
+  </form>
+
+  <h2>Comentarii</h2>
+  <div id="comments"></div>
+
+  <script>
+    const WORKER_URL = "https://comments-worker.opensourcenl.workers.dev/";
+
+    async function loadComments() {
+      try {
+        const response = await fetch(WORKER_URL);
+        const comments = await response.json();
+        document.getElementById("comments").innerHTML = comments.map(c => `
+          <div class="comment">
+            <strong>${c.name}</strong>: ${c.message}
+            <small>${new Date(c.timestamp).toLocaleString()}</small>
+          </div>
+        `).join("");
+      } catch (error) {
+        console.error("Eroare la încărcarea comentariilor:", error);
+      }
+    }
+
+    // Funcție pentru trimiterea comentariilor
+    document.getElementById("commentForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const formData = {
+        name: document.getElementById("name").value || "Anonim",
+        message: document.getElementById("message").value
+      };
+
+      try {
+        await fetch(WORKER_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
+        });
+        document.getElementById("message").value = "";
+        loadComments();
+      } catch (error) {
+        console.error("Eroare la trimiterea comentariului:", error);
+      }
+    });
+
+    loadComments();
+  </script>
+</body>
+</html>
