@@ -52,6 +52,12 @@
       <div class="mb-3">
         <textarea id="message" class="form-control" placeholder="Mesajul tău" required></textarea>
       </div>
+      <div class="mb-3">
+        <div class="form-check">
+          <input type="checkbox" id="terms" class="form-check-input" required>
+          <label for="terms" class="form-check-label">Sunt de acord cu <a href="/termeni-de-utilizare" target="_blank">termenii de utilizare</a>.</label>
+        </div>
+      </div>
       <div class="cf-turnstile" data-sitekey="0x4AAAAAAA9rgeB9x71eeXN6" data-auto-submit="true"></div>
       <button type="submit" class="btn btn-primary w-100">Trimite</button>
     </form>
@@ -147,16 +153,6 @@
       try {
         const response = await fetch(WORKER_URL, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(formData)
-        });
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(errorText);
-        }
-        document.getElementById("message").value = "";
-        loadComments();
-      } catch (error) {
-        console.error("Eroare la trimiterea coment
+          headers: { "Content-Type": "
 ::contentReference[oaicite:0]{index=0}
  
