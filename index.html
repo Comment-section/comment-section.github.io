@@ -4,12 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Comentarii</title>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
   <h1>Lasă un comentariu</h1>
   <form id="commentForm">
     <input type="text" id="name" placeholder="Nume (opțional)">
     <textarea id="message" placeholder="Mesajul tău" required></textarea>
+    <div class="cf-turnstile" data-sitekey="0x4AAAAAAA9rgeB9x71eeXN6"></div>
     <button type="submit">Trimite</button>
   </form>
 
@@ -34,12 +36,12 @@
       }
     }
 
-    // Funcție pentru trimiterea comentariilor
     document.getElementById("commentForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const formData = {
         name: document.getElementById("name").value || "Anonim",
-        message: document.getElementById("message").value
+        message: document.getElementById("message").value,
+        token: document.querySelector('.cf-turnstile-response').value
       };
 
       try {
