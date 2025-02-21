@@ -36,19 +36,13 @@
       }
     }
 
-    // Funcție pentru trimiterea comentariilor
     document.getElementById("commentForm").addEventListener("submit", async (e) => {
       e.preventDefault();
       const formData = {
         name: document.getElementById("name").value || "Anonim",
         message: document.getElementById("message").value,
-        token: document.querySelector('.cf-turnstile-response') ? document.querySelector('.cf-turnstile-response').value : null // Verifică dacă elementul există
+        token: document.querySelector('.cf-turnstile-response').value
       };
-
-      if (!formData.token) {
-        console.error("Token-ul Turnstile nu a fost găsit. Asigură-te că CAPTCHA a fost completat.");
-        return;
-      }
 
       try {
         await fetch(WORKER_URL, {
