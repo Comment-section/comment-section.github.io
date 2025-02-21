@@ -1,16 +1,113 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ro">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Comentarii</title>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; connect-src 'self' https://comments-worker.opensourcenl.workers.dev;">
-    <!-- Bootstrap 5 -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafafa;
+            color: #333;
+            line-height: 1.6;
+        }
+        .navbar {
+            background-color: #ffffff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .navbar-brand {
+            font-weight: 700;
+            color: #1a1a1a !important;
+        }
+        .container {
+            margin-top: 40px;
+        }
+        .comment-form-container {
+            background-color: #ffffff;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 40px;
+        }
+        .comment-form-container h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 20px;
+        }
+        .comment-form-container h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            color: #1a1a1a;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .comment-form-container p {
+            font-size: 1rem;
+            color: #4a4a4a;
+            margin-bottom: 20px;
+        }
+        .comment-form-container input, .comment-form-container textarea {
+            font-size: 1rem;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            width: 100%;
+        }
+        .comment-form-container button {
+            background-color: #007bff;
+            color: #fff;
+            font-size: 1rem;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 6px;
+        }
+        .comment-form-container button:hover {
+            background-color: #0056b3;
+        }
+        .comment-card {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 15px;
+        }
+        .footer {
+            background-color: #1a1a1a;
+            color: #ffffff;
+            padding: 20px 0;
+            text-align: center;
+            margin-top: 60px;
+        }
+        .footer a {
+            color: #ffffff;
+            text-decoration: underline;
+        }
+        .footer a:hover {
+            color: #cccccc;
+        }
+    </style>
 </head>
 <body>
-    <div class="container my-5">
-        <h1 class="mb-4">Lasă un comentariu</h1>
+
+<nav class="navbar navbar-expand-lg navbar-light">
+    <div class="container">
+        <a class="navbar-brand" href="index.html">Comentarii</a>
+        <div class="ml-auto">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="https://opensourcenl.github.io">opensourcenl</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="comment-form-container">
+        <h1>Lasă un comentariu</h1>
         <form id="commentForm">
             <div class="mb-3">
                 <input type="text" id="name" class="form-control" placeholder="Nume (opțional)">
@@ -25,71 +122,78 @@
             </div>
             <button type="submit" class="btn btn-primary mt-3">Trimite</button>
         </form>
-
-        <h2 class="mt-5">Comentarii</h2>
-        <div id="comments"></div>
     </div>
 
-    <script>
-        const WORKER_URL = "https://comments-worker.opensourcenl.workers.dev/";
+    <h2>Comentarii</h2>
+    <div id="comments"></div>
+</div>
 
-        async function loadComments() {
-            try {
-                const response = await fetch(WORKER_URL);
-                if (!response.ok) {
-                    throw new Error("Failed to load comments");
-                }
-                const comments = await response.json();
-                document.getElementById("comments").innerHTML = comments.map(c => `
-                    <div class="comment card p-3 mb-2">
-                        <div class="card-body">
-                            <h5 class="card-title">${c.name}</h5>
-                            <p class="card-text">${c.message}</p>
-                            <small class="text-muted">${new Date(c.timestamp).toLocaleString()}</small>
-                        </div>
-                    </div>
-                `).join("");
-            } catch (error) {
-                console.error("Eroare la încărcarea comentariilor:", error);
+<footer class="footer">
+    <div class="container">
+        <p>
+            Fără drepturi de autor. Creat de <a href="https://opensourcenl.github.io">opensourcenl</a>.
+        </p>
+    </div>
+</footer>
+
+<script>
+    const WORKER_URL = "https://comments-worker.opensourcenl.workers.dev/";
+
+    async function loadComments() {
+        try {
+            const response = await fetch(WORKER_URL);
+            if (!response.ok) {
+                throw new Error("Failed to load comments");
             }
+            const comments = await response.json();
+            document.getElementById("comments").innerHTML = comments.map(c => `
+                <div class="comment-card">
+                    <h5>${c.name}</h5>
+                    <p>${c.message}</p>
+                    <small class="text-muted">${new Date(c.timestamp).toLocaleString()}</small>
+                </div>
+            `).join("");
+        } catch (error) {
+            console.error("Eroare la încărcarea comentariilor:", error);
+        }
+    }
+
+    document.getElementById("commentForm").addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = {
+            name: document.getElementById("name").value || "Anonim",
+            message: document.getElementById("message").value
+        };
+
+        if (!document.getElementById("terms").checked) {
+            alert("Trebuie să fii de acord cu termenii de utilizare.");
+            return;
         }
 
-        document.getElementById("commentForm").addEventListener("submit", async (e) => {
-            e.preventDefault();
+        try {
+            const response = await fetch(WORKER_URL, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(formData)
+            });
 
-            const formData = {
-                name: document.getElementById("name").value || "Anonim",
-                message: document.getElementById("message").value
-            };
-
-            if (!document.getElementById("terms").checked) {
-                alert("Trebuie să fii de acord cu termenii de utilizare.");
-                return;
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText);
             }
 
-            try {
-                const response = await fetch(WORKER_URL, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(formData)
-                });
+            document.getElementById("message").value = "";
+            loadComments();
+        } catch (error) {
+            console.error("Eroare la trimiterea comentariului:", error);
+        }
+    });
 
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(errorText);
-                }
+    loadComments();
+</script>
 
-                document.getElementById("message").value = "";
-                loadComments();
-            } catch (error) {
-                console.error("Eroare la trimiterea comentariului:", error);
-            }
-        });
-
-        loadComments();
-    </script>
-
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 </body>
 </html>
