@@ -1,158 +1,97 @@
 <!DOCTYPE html>
-<html lang="ro">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Comentarii</title>
-  <!-- Include Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    /* Stiluri suplimentare */
-    body {
-      background-color: #f8f9fa;
-      padding-top: 20px;
-    }
-    .comment {
-      background-color: #ffffff;
-      border-radius: 5px;
-      padding: 15px;
-      margin-bottom: 10px;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-    }
-    .comment .replies {
-      margin-left: 20px;
-    }
-    .replyButton {
-      background: none;
-      border: none;
-      color: #007bff;
-      cursor: pointer;
-      text-decoration: underline;
-    }
-    .replyButton:hover {
-      color: #0056b3;
-    }
-    #replyForm {
-      display: none;
-      background-color: #f9f9f9;
-      padding: 15px;
-      margin-top: 10px;
-      border-radius: 5px;
-      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comentarii</title>
+    <meta http-equiv="Content-Security-Policy" content="script-src *; default-src *;">
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
-  <div class="container">
-    <h1 class="text-center">Lasă un comentariu</h1>
-    <form id="commentForm" class="mb-4">
-      <div class="mb-3">
-        <input type="text" id="name" class="form-control" placeholder="Nume (opțional)">
-      </div>
-      <div class="mb-3">
-        <textarea id="message" class="form-control" placeholder="Mesajul tău" required></textarea>
-      </div>
-      <div class="mb-3">
-        <div class="form-check">
-          <input type="checkbox" id="terms" class="form-check-input" required>
-          <label for="terms" class="form-check-label">Sunt de acord cu <a href="/termeni-de-utilizare" target="_blank">termenii de utilizare</a>.</label>
-        </div>
-      </div>
-      <div class="cf-turnstile" data-sitekey="0x4AAAAAAA9rgeB9x71eeXN6" data-auto-submit="true"></div>
-      <button type="submit" class="btn btn-primary w-100">Trimite</button>
-    </form>
+    <div class="container my-5">
+        <h1 class="mb-4">Lasă un comentariu</h1>
+        <form id="commentForm">
+            <div class="mb-3">
+                <input type="text" id="name" class="form-control" placeholder="Nume (opțional)">
+            </div>
+            <div class="mb-3">
+                <textarea id="message" class="form-control" placeholder="Mesajul tău" required></textarea>
+            </div>
+            <div class="cf-turnstile" data-sitekey="0x4AAAAAAA9rgeB9x71eeXN6" data-auto-submit="true"></div>
+            <button type="submit" class="btn btn-primary mt-3">Trimite</button>
+        </form>
 
-    <h2>Comentarii</h2>
-    <div id="comments"></div>
-
-    <div id="replyForm">
-      <div class="mb-3">
-        <input type="text" id="replyName" class="form-control" placeholder="Nume (opțional)">
-      </div>
-      <div class="mb-3">
-        <textarea id="replyMessage" class="form-control" placeholder="Mesajul tău" required></textarea>
-      </div>
-      <button type="submit" class="btn btn-secondary w-100">Trimite răspunsul</button>
+        <h2 class="mt-5">Comentarii</h2>
+        <div id="comments"></div>
     </div>
-  </div>
 
-  <!-- Include Bootstrap 5 JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-  <script>
-    const WORKER_URL = "https://comments-worker.opensourcenl.workers.dev/";
+    <script>
+        const WORKER_URL = "https://comments-worker.opensourcenl.workers.dev/";
 
-    async function loadComments() {
-      try {
-        const response = await fetch(WORKER_URL);
-        if (!response.ok) {
-          throw new Error("Failed to load comments");
-        }
-        const comments = await response.json();
-        const commentsContainer = document.getElementById("comments");
-        commentsContainer.innerHTML = comments.map(c => `
-          <div class="comment" style="margin-left: ${c.parent_id ? '20px' : '0'};">
-            <strong>${c.name}</strong>: ${c.message}
-            <small class="d-block text-muted">${new Date(c.timestamp).toLocaleString()}</small>
-            <button class="replyButton" data-parent-id="${c.id}">Răspunde</button>
-            ${c.replies ? `
-              <div class="replies">
-                ${c.replies.map(reply => `
-                  <div class="comment" style="margin-left: 20px;">
-                    <strong>${reply.name}</strong>: ${reply.message}
-                    <small class="d-block text-muted">${new Date(reply.timestamp).toLocaleString()}</small>
-                  </div>
-                `).join('')}
-              </div>
-            ` : ''}
-          </div>
-        `).join('');
-        document.querySelectorAll('.replyButton').forEach(button => {
-          button.addEventListener('click', (e) => {
-            const parentId = e.target.getAttribute('data-parent-id');
-            document.getElementById('replyForm').style.display = 'block';
-            document.getElementById('replyMessage').focus();
-            document.getElementById('replyForm').onsubmit = async (e) => {
-              e.preventDefault();
-              const formData = {
-                name: document.getElementById("replyName").value || "Anonim",
-                message: document.getElementById("replyMessage").value,
-                parent_id: parentId
-              };
-              try {
-                const response = await fetch(WORKER_URL, {
-                  method: "POST",
-                  headers: { "Content-Type": "application/json" },
-                  body: JSON.stringify(formData)
-                });
+        async function loadComments() {
+            try {
+                const response = await fetch(WORKER_URL);
                 if (!response.ok) {
-                  const errorText = await response.text();
-                  throw new Error(errorText);
+                    throw new Error("Failed to load comments");
                 }
-                document.getElementById("replyMessage").value = "";
-                loadComments();
-                document.getElementById('replyForm').style.display = 'none';
-              } catch (error) {
-                console.error("Eroare la trimiterea răspunsului:", error);
-              }
-            };
-          });
-        });
-      } catch (error) {
-        console.error("Eroare la încărcarea comentariilor:", error);
-      }
-    }
+                const comments = await response.json();
+                document.getElementById("comments").innerHTML = comments.map(c => `
+                    <div class="comment card p-3 mb-2">
+                        <div class="card-body">
+                            <h5 class="card-title">${c.name}</h5>
+                            <p class="card-text">${c.message}</p>
+                            <small class="text-muted">${new Date(c.timestamp).toLocaleString()}</small>
+                            <div class="mt-2">
+                                <button class="btn btn-link reply-button" onclick="replyToComment(${c.id})">Răspunde</button>
+                            </div>
+                        </div>
+                    </div>
+                `).join("");
+            } catch (error) {
+                console.error("Eroare la încărcarea comentariilor:", error);
+            }
+        }
 
-    document.getElementById("commentForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const token = document.querySelector('.cf-turnstile-response') ? document.querySelector('.cf-turnstile-response').value : null;
-      const formData = {
-        name: document.getElementById("name").value || "Anonim",
-        message: document.getElementById("message").value,
-        token: token
-      };
-      try {
-        const response = await fetch(WORKER_URL, {
-          method: "POST",
-          headers: { "Content-Type": "
-::contentReference[oaicite:0]{index=0}
- 
+        document.getElementById("commentForm").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const token = document.querySelector('.cf-turnstile-response') ? document.querySelector('.cf-turnstile-response').value : null;
+
+            const formData = {
+                name: document.getElementById("name").value || "Anonim",
+                message: document.getElementById("message").value,
+                token: token
+            };
+
+            try {
+                const response = await fetch(WORKER_URL, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(formData)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(errorText);
+                }
+
+                document.getElementById("message").value = "";
+                loadComments();
+            } catch (error) {
+                console.error("Eroare la trimiterea comentariului:", error);
+            }
+        });
+
+        function replyToComment(parentId) {
+            document.getElementById("message").value = `Răspuns la comentariul cu ID-ul ${parentId}: `;
+            // Adaptează logica pentru a adăuga ID-ul răspunsului în body-ul POST
+        }
+
+        loadComments();
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.min.js"></script>
+</body>
+</html>
